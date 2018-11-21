@@ -317,7 +317,7 @@ kdbConnection userVal passVal freePort = do
       h _ = Handler $ \ (_ :: IOError) -> return True
 
   -- Try connecting
-  (_, con) <- allocate (pure $ recovering policy [h] $ Client.connect props) Client.close
+  (_, con) <- allocate (recovering policy [h] $ pure $ Client.connect props) (Client.close)
   return $! con
 
 --------------------------------------
