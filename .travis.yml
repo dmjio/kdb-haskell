@@ -1,10 +1,26 @@
-language: haskell
-ghc: 7.8.3
+language: nix
 
-cache:
-  directories:
-  - ~/.cabal
-  
+matrix:
+  fast_finish: true
+  include:
+    - env: GHCVER=ghcHEAD
+    - env: GHCVER=ghc861
+    - env: GHCVER=ghc844
+    - env: GHCVER=ghc822
+    - env: GHCVER=ghc802
+
+  allow_failures:
+    - env: GHCVER=ghcHEAD
+    - env: GHCVER=ghc822
+    - env: GHCVER=ghc802
+
+before_install:
+ - nix-channel --list
+ - nix-channel --update
+
+script:
+ - nix-build --argstr compiler $GHCVER
+
 notifications:
   webhooks:
     urls:
@@ -13,25 +29,5 @@ notifications:
     on_failure: always  # options: [always|never|change] default: always
     on_start: false     # default: false
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch
-  - cabal update
-  - pushd .
-  - cd ~/
-  - travis_retry cabal install cabal-install
-  - popd
-  - cabal sandbox init
-  - travis_retry cabal install hpc-coveralls --force-reinstalls
-
-script:
-  - cabal install --only-dependencies --enable-tests
-  - cabal configure --enable-tests --enable-library-coverage
-  - cabal build
-  - run-cabal-test --show-details=always
-#  - hlint src
-#  - hlint tests
-#  - hlint benchmarks
-
 after_script:
-  - hpc-coveralls --exclude-dir=tests kdb-haskell-tests
+  - nix-shell -p haskellPackages.hpc-coveralls --command 'hpc-coveralls --exclude-dir=tests kdb-haskell-tests'

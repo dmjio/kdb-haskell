@@ -28,7 +28,7 @@ module Database.Kdb.Internal.Client (
 
 import           Blaze.ByteString.Builder                 (Builder)
 import qualified Blaze.ByteString.Builder                 as Blaze
-import qualified Blaze.ByteString.Builder.Internal.Buffer as Blaze
+import           Data.ByteString.Builder.Internal
 import           Control.Lens
 import           Control.Monad.Catch                      (MonadCatch,
                                                            MonadMask)
@@ -76,7 +76,7 @@ connect cs@ConnectionSettings {..} =
       (is, osNaked)
           <- Streams.socketToStreamsWithBufferSize _receiveBufferSize
                                                    socket
-      os <- Streams.unsafeBuilderStream (Blaze.allocBuffer _writeBufferSize) osNaked
+      os <- Streams.unsafeBuilderStream (newBuffer _writeBufferSize) osNaked
 
       -- Write the login bytes
       writeAndFlush (loginBytes cs) os
